@@ -1,0 +1,40 @@
+<!-- Base parameters for sending email -->
+<template id="block-custom-properties">
+  
+  <div class="ui grid">
+    <div class="ten wide column">
+      <strong>Select Your File</strong>
+    </div>
+
+    <div class="column">
+      <button id="btSelectFile" data-index={{@index}} class="circular ui black icon button cmd-btn">
+        <i class="folder open outline icon"></i>
+      </button>
+    </div>
+  </div>
+  
+  
+  <div class="ui inverted divider"></div>
+  
+  {{#if fileInfo}}
+  <div class="ui form" id="fileInfoContainer">
+    <div class="inline fields template-row">
+      <div class="two wide field">
+        <div class="ui inverted transparent icon input">
+          <input type="text" id="txtFileName" readonly data-index={{@index}} placeholder="" value="{{fileInfo.fileName}}" style="color:white;">
+        </div>
+      </div>
+    </div>
+
+    <div class="inline fields template-row">
+        <div class="two wide field">
+          <div class="ui inverted transparent icon input">
+            <input type="text" id="txtFileName" readonly data-index={{@index}} placeholder="" value="{{fileInfo.fileName}}" style="color:white;">
+          </div>
+        </div>
+      </div>
+  </div>
+  {{/if}}
+    
+  </template>
+  
