@@ -1,7 +1,7 @@
 /*
  * Written by Alexander Agudelo < alex.agudelo@asurantech.com >, 2018
  * Date: 12/Apr/2018
- * Last Modified: 13/04/2018, 1:14:43 pm
+ * Last Modified: 13/04/2018, 1:29:59 pm
  * Modified By: Alexander Agudelo
  * Description:  Reads files from disks and makes the content available to the LM
  * 
@@ -54,10 +54,15 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
     //   this.config._fileIndex = this.storedSettings.fileIndex
     // }
     
+    this.displayState("warning", "Please select a file");
 
     this.loadTemplate('properties.html').then(function(template){
       that.propTemplate = template;
     });
+  };
+
+  BinaryReader.hasMissingProperties = function() {
+    return this._fileConfig === undefined;
   };
 
   /**
@@ -67,7 +72,7 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
    */
   BinaryReader.onExecute = function(event) {
     var that = this;
-    if(event){
+    if(event && this._fileConfig){
       if(event.action == 'Read'){
         if(event.data === 0 || event.data === true){
           event.data = 1;
@@ -163,7 +168,7 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
       _file: file
     };
 
-
+    this.clearState();
     BinaryReader.renderInterface.call(this);
   };
   
