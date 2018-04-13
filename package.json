@@ -1,7 +1,7 @@
 {
   "name": "kitsunei-FileReader",
-  "version": "2.5.0",
-  "description": "FileReader Block",
+  "version": "1.0.0",
+  "description": "Reads files in binary format and makes the content available inside the Logic Maker",
   "repository": "kitsunei-FileReader",
   "scripts": {
     "test": "gulp",

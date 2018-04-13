@@ -22,8 +22,7 @@ gulp.task('qualitychecker', function(cb) {
 	return gulp.src([
 		'**/*.js',
 		'!node_modules/**/*.js',
-		'!dist/**/*.js',
-		'!FileReader/components/**/*.js'])
+		'!dist/**/*.js'])
 		.pipe(jshint({esversion: 6}))
 		.pipe(jshint.reporter('default'))
 		.on('error', utils.log);
@@ -62,10 +61,10 @@ gulp.task('css', function(cb) {
 	], cb);
 });
 
-gulp.task('copy', function(){
-	gulp.src('FileReader/sounds/*')
-	.pipe(gulp.dest(dest + 'sounds/'));
-});
+// gulp.task('copy', function(){
+// 	gulp.src('FileReader/sounds/*')
+// 	.pipe(gulp.dest(dest + 'sounds/'));
+// });
 
 
 gulp.task('html', function (cb) {
@@ -79,5 +78,5 @@ gulp.task('html', function (cb) {
 });
 
 
-gulp.task('build', ['copy', 'js', 'css', 'html', 'mini']);
+gulp.task('build', ['js', 'css', 'html', 'mini']);
 gulp.task('default', ['qualitychecker']);
