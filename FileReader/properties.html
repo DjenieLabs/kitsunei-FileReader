@@ -16,25 +16,29 @@
   
   <div class="ui inverted divider"></div>
   
-  {{#if fileInfo}}
+  
   <div class="ui form" id="fileInfoContainer">
+    {{#if fileInfo}}
     <div class="inline fields template-row">
-      <div class="two wide field">
+      <div class="five wide field">File Name</div>
+      <div class="twelve wide field">
         <div class="ui inverted transparent icon input">
-          <input type="text" id="txtFileName" readonly data-index={{@index}} placeholder="" value="{{fileInfo.fileName}}" style="color:white;">
+          <input type="text" id="txtFileName" readonly placeholder="" value="{{fileInfo.fileName}}" style="color:white;">
         </div>
       </div>
     </div>
 
     <div class="inline fields template-row">
-        <div class="two wide field">
+        <div class="five wide field">Total Bytes</div>
+        <div class="twelve wide field">
           <div class="ui inverted transparent icon input">
-            <input type="text" id="txtFileName" readonly data-index={{@index}} placeholder="" value="{{fileInfo.fileName}}" style="color:white;">
+            <input type="text" id="txtFileSize" readonly placeholder="" value="{{fileInfo.size}}" style="color:white;">
           </div>
         </div>
       </div>
+    {{/if}}
+    <input id="fileSelector" class="six wide field openFile" type="file" style="display: none">
   </div>
-  {{/if}}
-    
+  
   </template>
   

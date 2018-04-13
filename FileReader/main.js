@@ -1,7 +1,7 @@
 /*
  * Written by Alexander Agudelo < alex.agudelo@asurantech.com >, 2018
  * Date: 12/Apr/2018
- * Last Modified: 12/04/2018, 3:34:27 pm
+ * Last Modified: 13/04/2018, 1:14:43 pm
  * Modified By: Alexander Agudelo
  * Description:  Reads files from disks and makes the content available to the LM
  * 
@@ -18,7 +18,7 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
     "Move"
   ];
   
-  var inputs = ['Bytes', 'Offset', 'Finished'];
+  var inputs = ['Bytes', 'Finished'];
   var BinaryReader = {};
 
 
@@ -36,7 +36,7 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
   };
 
   BinaryReader.onBeforeSave = function() {
-    return this.config;
+    return {};      // Nothing to store
   };
 
   /**
@@ -48,16 +48,12 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
    */
   BinaryReader.onLoad = function(){
     var that = this;
-    this.config = this.config || {_fileIndex: 0, filePath: false};
+    this.config = this.config || {};
 
-    if (this.storedSettings && this.storedSettings.fileIndex) {
-      this.config._fileIndex = this.storedSettings.fileIndex
-    }
+    // if (this.storedSettings && this.storedSettings.fileIndex) {
+    //   this.config._fileIndex = this.storedSettings.fileIndex
+    // }
     
-    if (this.storedSettings && this.storedSettings.filePath) {
-      this.config._filePath = this.storedSettings.filePath
-    }
-
 
     this.loadTemplate('properties.html').then(function(template){
       that.propTemplate = template;
@@ -70,12 +66,31 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
    * actions from the hardware.
    */
   BinaryReader.onExecute = function(event) {
-    console.log(event);
-    if(event && event.action == 'Read'){
-      
+    var that = this;
+    if(event){
+      if(event.action == 'Read'){
+        if(event.data === 0 || event.data === true){
+          event.data = 1;
+        }else{
+          event.data = parseInt(Number(event.data));
+        }
+  
+        BinaryReader.getBytes.call(this, event.data, function(bytes){
+          that.processData({bytes: bytes});
+          if(that._fileConfig._offset >= that._fileConfig._file.size){
+            that.processData({finished: true});
+            that._fileConfig._offset = 0;
+          }
+        });
+      }else if(event.action == 'Reset'){
+        this._fileConfig._offset = 0;
+      }else if(event.action == 'Move'){
+        if(!isNaN(event.data)){
+          this._fileConfig._offset = parseInt(Number(event.data));
+        }
+      }
     }
   };
-
 
   /**
    * Triggered when the user clicks on a block.
@@ -89,41 +104,67 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
     BinaryReader.renderInterface.call(this);
   };
 
-  BinaryReader.loadFile = function() {
+  /**
+   * Reads the requested bytes from the
+   * selected file.
+   */
+  BinaryReader.getBytes = function(total, callback){
+    var reader = new FileReader();
+    var CHUNK_SIZE = total;
+    var that = this;
     
-  };
-
-  BinaryReader.removeFile = function() {
-    
-  };
-
-
-  BinaryReader.updateFromFile = function(index, file){
-    if(index && index !== ''){
-      var reader = new FileReader();
-      var that = this;
-
-      var binaryLoaded = function(e){
-        var contents = e.target.result;
-        console.log("Local file size: %d kb", contents.length/1024);
-        
-        var button = that.propertiesWindow.find("#btSelectFile");
-        var icon = button.find("i");
-        
-      }
-
-      // Disable the button while the user selects a file.
-      this.propertiesWindow.find("#btSelectFile").addClass("disabled");
-      // Disable the other buttons
-      BinaryReader.toggleIconActive.call(this, 'file', true);
-
-      reader.onload = binaryLoaded.bind(this);
-      if(file){
-        reader.readAsDataURL(file);  
-      }else{
-        BinaryReader.renderInterface.call(this);
+    var onData = function(e){
+      var contents = new Uint8Array(e.target.result);
+      this._fileConfig._offset += CHUNK_SIZE;
+      if(typeof callback === 'function'){
+        callback.call(that, contents);
       }
     }
+
+    reader.onload = onData.bind(this);
+
+    // Trim chunk if it overflows
+    if( (this._fileConfig._offset + CHUNK_SIZE) > this.config.fileInfo.size){
+      CHUNK_SIZE = this.config.fileInfo.size - this._fileConfig._offset;
+    }
+
+    var slice =  this._fileConfig._file.slice(this._fileConfig._offset, this._fileConfig._offset + CHUNK_SIZE);
+    reader.readAsArrayBuffer(slice);  
+    
+  };
+
+  BinaryReader.loadFile = function(file){
+    var button = this.propertiesWindow.find("#btSelectFile");
+    var size = file.size;
+    if(size > 1024){
+      if(size < 1048576){
+        size = parseInt(size / 1024);
+        size += " Kb"
+      }else{
+        if(size < 1073741824){
+          size = parseInt(size / 1048576);
+          size += " MB"
+        }else{
+          size = parseInt(size / 1073741824);
+          size += " GB"
+        }
+      }
+    }else{
+      size += " bytes"
+    }
+    
+    this.config.fileInfo = {
+      fileName: file.name,
+      size: size, 
+    };
+
+    this._fileConfig = {
+      _offset: 0,
+      _file: file
+    };
+
+
+    BinaryReader.renderInterface.call(this);
   };
   
 
@@ -138,32 +179,17 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
     
     this.propertiesWindow = $(this.propTemplate(this.config));
 
-    this.propertiesWindow.find("#btAdd").click(BinaryReader.loadFile.bind(this));
-    this.propertiesWindow.find("#btRemove").click(BinaryReader.removeFile.bind(this));
-    var file = this.propertiesWindow.find("#btRemove");
-
-    this.propertiesWindow.find("#btSelectFile").click(function() {
-      console.log("rendering");
-      var index = $(this).attr("data-index");
-      that.propertiesWindow.find(".openFile[data-index='"+index+"']").click();
+    var openFileBtn = this.propertiesWindow.find("#btSelectFile");
+    var file = this.propertiesWindow.find(".openFile");
+  
+    
+    openFileBtn.click(function() {
+      file.click();
     });
 
     
-
-    // this.propertiesWindow.find("#txtSoundName").focusout(function(){
-    //   var index = $(this).attr("data-index");
-    //   if(index && index !== ''){
-    //     index = Number(index);
-    //     if(index < that.config.soundList.length-1){
-    //       that.config.soundList[index].name = $(this).val();
-    //     }
-    //   }
-    // });
-
-    
-    this.propertiesWindow.find(".openFile").on('change', function fileSelected(e){
-      var index = $(this).attr("data-index");
-      BinaryReader.updateFromFile.call(that, index, this.files[0]);
+    file.on('change', function fileSelected(e){
+      BinaryReader.loadFile.call(that, this.files[0]);
     });
 
     // Display elements
