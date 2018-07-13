@@ -7,15 +7,12 @@ var uglify = require('gulp-uglify');
 var uglifycss = require('gulp-uglifycss');
 var htmlmin = require('gulp-htmlmin');
 var babel = require('gulp-babel');
+var zip = require('gulp-zip');
+var del = require('del');
 
 // Include Gulp
 var dest = "dist/";
 
-// Include plugins
-var plugins = require("gulp-load-plugins")({
-	pattern: ['gulp-*', 'gulp.*', 'main-bower-files'],
-	replaceString: /\bgulp[\-.]/
-});
 
 // Check the code quality
 gulp.task('qualitychecker', function(cb) {
@@ -77,6 +74,19 @@ gulp.task('html', function (cb) {
   );
 });
 
+gulp.task('clean', function (cb) {
+	return del([dest + "/bundle.block"])
+});
 
-gulp.task('build', ['js', 'css', 'html', 'mini']);
-gulp.task('default', ['qualitychecker']);
+
+gulp.task('bundle', function (cb) {
+	return pump([
+		gulp.src(dest + '/**'),
+		zip('bundle.block'),
+		gulp.dest(dest)
+	], cb);
+});
+
+
+gulp.task('build', gulp.series('clean', gulp.parallel('js', 'css', 'html', 'mini'), 'bundle'));
+gulp.task('default', gulp.series('qualitychecker'));
