@@ -1,7 +1,7 @@
 /*
  * Written by Alexander Agudelo < alex.agudelo@asurantech.com >, 2018
  * Date: 12/Apr/2018
- * Last Modified: 13/04/2018, 1:29:59 pm
+ * Last Modified: 12/12/2019, 11:29:52 am
  * Modified By: Alexander Agudelo
  * Description:  Reads files from disks and makes the content available to the LM
  * 
@@ -81,9 +81,9 @@ define(['HubLink', 'RIB', 'PropertiesPanel', 'Easy'], function(Hub, RIB, Propert
         }
   
         BinaryReader.getBytes.call(this, event.data, function(bytes){
-          that.processData({bytes: bytes});
+          that.processData({Bytes: bytes});
           if(that._fileConfig._offset >= that._fileConfig._file.size){
-            that.processData({finished: true});
+            that.processData({Finished: true});
             that._fileConfig._offset = 0;
           }
         });
